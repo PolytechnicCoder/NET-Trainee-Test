@@ -1,0 +1,133 @@
+﻿@model IEnumerable<NET_Trainee_Test.Models.Person>
+
+@{
+    ViewBag.Title = "Завантаження CSV файлу та відображення даних";
+}
+
+<h2>Завантажити CSV файл</h2>
+
+
+<form method="post" enctype="multipart/form-data" asp-action="Index">
+    <div class="form-group">
+        <label for="file">Виберіть файл CSV:</label>
+        <div class="input-group">
+            <input type="file" name="file" id="file" class="form-control" />
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Завантажити
+            </button>
+        </div>
+    </div>
+</form>
+
+@if (Model != null && Model.Any())
+{
+    <h2>Список осіб</h2>
+
+
+    <table class="table table-bordered" id="personTable">
+        <thead>
+            <tr>
+                <th>Ім'я</th>
+                <th>Дата народження</th>
+                <th>Телефон</th>
+                <th>Сімейний стан</th>
+                <th>Зарплата</th>
+                <th>Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in Model)
+            {
+                <tr data-id="@person.Id">
+                    <td contenteditable="true" class="editable" data-field="name">@person.Name</td>
+                    <td contenteditable="true" class="editable" data-field="dateOfBirth">@person.DateOfBirth.ToString("yyyy-MM-dd")</td>
+                    <td contenteditable="true" class="editable" data-field="phone">@person.Phone</td>
+                    <td>
+                        <input type="checkbox" class="married-checkbox" data-field="married" @(person.Married ? "checked" : "") />
+                    </td>
+                    <td contenteditable="true" class="editable" data-field="salary">@person.Salary</td>
+                    <td>
+                        <button class="btn btn-danger delete-btn">Видалити</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@section Scripts {
+ 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+   
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+
+    <script>
+        $(document).ready(function () {
+          
+            $('#personTable').DataTable({
+                "paging": true,    
+                "ordering": true,  
+                "searching": true  
+            });
+        });
+
+        
+        $('.editable').on('blur', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+            var field = $(this).data('field');
+            var value = $(this).text();
+
+            updatePerson(id, field, value);
+        });
+
+        
+        $('.married-checkbox').on('change', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+            var value = $(this).is(':checked');
+
+            updatePerson(id, 'married', value);
+        });
+
+        
+        function updatePerson(id, field, value) {
+            $.ajax({
+                url: '@Url.Action("Edit", "Csv")',
+                type: 'POST',
+                data: { id: id, field: field, value: value },
+                success: function (response) {
+                    alert('Запис успішно оновлено!');
+                },
+                error: function () {
+                    alert('Сталася помилка під час оновлення запису.');
+                }
+            });
+        }
+
+        
+        $('.delete-btn').on('click', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+
+            if (confirm('Ви впевнені, що хочете видалити цей запис?')) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Csv")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (response) {
+                        row.remove();
+                        alert('Запис успішно видалено!');
+                    },
+                    error: function () {
+                        alert('Сталася помилка під час видалення запису.');
+                    }
+                });
+            }
+        });
+    </script>
+}

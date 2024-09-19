@@ -1,0 +1,18 @@
+﻿@{
+    ViewBag.Title = "Завантаження CSV файлу";
+}
+
+<h2>Завантажити CSV файл</h2>
+
+<form method="post" enctype="multipart/form-data" asp-action="Upload" asp-controller="Csv">
+    <div class="form-group">
+        <label for="file">Виберіть файл CSV:</label>
+        <input type="file" name="file" id="file" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Завантажити</button>
+</form>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info">@ViewBag.Message</div>
+}

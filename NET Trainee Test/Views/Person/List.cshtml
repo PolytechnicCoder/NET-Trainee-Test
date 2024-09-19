@@ -1,0 +1,102 @@
+﻿@model IEnumerable<NET_Trainee_Test.Models.Person>
+
+@{
+    ViewBag.Title = "Список осіб";
+}
+
+<h2>Список осіб</h2>
+
+<table class="table table-bordered" id="personTable">
+    <thead>
+        <tr>
+            <th>Ім'я</th>
+            <th>Телефон</th>
+            <th>Зарплата</th>
+            <th>Сімейний стан</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in Model)
+        {
+            <tr data-id="@person.Id">
+                <td contenteditable="true" class="editable" data-field="name">@person.Name</td>
+                <td contenteditable="true" class="editable" data-field="phone">@person.Phone</td>
+                <td contenteditable="true" class="editable" data-field="salary">@person.Salary</td>
+                <td>
+                    <input type="checkbox" class="married-checkbox" data-field="married" @(person.Married ? "checked" : "") />
+                </td>
+                <td>
+                    <button class="btn btn-danger delete-btn">Видалити</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        
+        $('.editable').on('blur', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+            var field = $(this).data('field');
+            var value = $(this).text();
+
+            updatePerson(id, field, value);
+        });
+
+        
+        $('.married-checkbox').on('change', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+            var value = $(this).is(':checked');
+
+            updatePerson(id, 'married', value);
+        });
+
+        
+        function updatePerson(id, field, value) {
+            var row = $('tr[data-id="' + id + '"]');
+            var name = row.find('td[data-field="name"]').text();
+            var phone = row.find('td[data-field="phone"]').text();
+            var salary = parseFloat(row.find('td[data-field="salary"]').text());
+            var married = row.find('.married-checkbox').is(':checked');
+
+            $.ajax({
+                url: '@Url.Action("Edit", "Person")',
+                type: 'POST',
+                data: {
+                    id: id,
+                    name: name,
+                    phone: phone,
+                    salary: salary,
+                    married: married
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('Запис успішно оновлено!');
+                    }
+                }
+            });
+        }
+
+        $('.delete-btn').on('click', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+
+            $.ajax({
+                url: '@Url.Action("Delete", "Person")',
+                type: 'POST',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        row.remove();
+                        alert('Запис успішно видалено!');
+                    }
+                }
+            });
+        });
+    </script>
+}
